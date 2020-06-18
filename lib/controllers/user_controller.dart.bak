@@ -1,0 +1,25 @@
+import 'package:todo/models/user.dart';
+import 'package:todo/todo.dart';
+import 'package:todo/utils/utils.dart';
+
+class UserController extends ResourceController {
+  UserController(this.context) {
+    acceptedContentTypes = [ContentType.json];
+  }
+
+  final ManagedContext context;
+
+  @Operation.post()
+  Future<Response> postUser() async {
+    final body = User()..read(await request.body.decode(), ignore: ["id"]);
+
+    final query = Query<User>(context);
+    body.passwordHash = Utils.generateSHA256Hash(body.password);
+    query.values.email = body.email;
+    query.values.passwordHash = body.passwordHash;
+    query.values.name = body.name;
+
+    final user = await query.insert();
+    return Response.ok("Usuário criado com sucesso");
+  }
+}
